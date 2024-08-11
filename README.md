@@ -17,5 +17,5 @@ This is a repo for paper "[What Makes In-context Learning Effective for Mathemat
 
 **Select the demonstrations :** 
 ```shell
-python S3ICL.py
+python LMS3.py
 ```
