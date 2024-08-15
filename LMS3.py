@@ -1,7 +1,7 @@
 import os
 from argparse import ArgumentParser
 def get_args():
-    parser = ArgumentParser(description='S3ICL')
+    parser = ArgumentParser(description='LMS3')
     parser.add_argument('--cuda', type=str, dest='cuda_id', default=None)
     args = parser.parse_args()
     return args
@@ -23,7 +23,7 @@ def get_last_layer_attention_weights(model):
     W_v = last_layer.v_proj.weight
     return W_q, W_k, W_v
 
-ori_model_path  = "/data1/share/edunlp/LLM-Research/Meta-Llama-3-8B-Instruct"
+ori_model_path  = "root_path/Meta-Llama-3-8B-Instruct"
 config_kwargs = {
     "trust_remote_code": True,
     "cache_dir": None,
@@ -47,15 +47,8 @@ tokenizer.pad_token = tokenizer.eos_token
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-w_k1 = torch.load("/data1/jyliu/in_context/S3ICL/wk.pt")
-w_q = torch.load("/data1/jyliu/in_context/S3ICL/wq.pt")
-w_v = torch.load("/data1/jyliu/in_context/S3ICL/wv.pt")
-# W_q, W_k, W_v = get_last_layer_attention_weights(model)  # W_k: 1024*4096
-# W_k1 = W_k.reshape(8, 128, 4096).repeat(1, 4, 1).reshape(4096, 4096).T # num_key_value_heads = 8
-
-# torch.save(W_k1, "/data1/jyliu/in_context/S3ICL/v1/wk.pt")
-# torch.save(W_q, "/data1/jyliu/in_context/S3ICL/v1/wq.pt")
-# torch.save(W_v, "/data1/jyliu/in_context/S3ICL/v1/wv.pt")
+w_q, w_k, w_v = get_last_layer_attention_weights(model)  # W_k: 1024*4096
+w_k1 = w_k.reshape(8, 128, 4096).repeat(1, 4, 1).reshape(4096, 4096).T # num_key_value_heads = 8
 
 def load_json(file):
     with open(file, 'r', encoding='utf-8') as f:
@@ -96,7 +89,7 @@ def calculate_distance(x_A, x_B, batch_size=32):
     sta_vec = x_B @ w_v.T
     sta = torch.norm(sta_vec, dim=-1).detach().cpu().numpy()
 
-    # calculate LLM-aware semantic similarity
+    # calculate LLM-oriented semantic similarity
     distances = []
     num_A, num_B = x_A.size(0), x_B.size(0)
     for i in range(0, num_A, batch_size):
@@ -131,13 +124,8 @@ def construct_example(train_data, test_data, q_key, dataset, k=1):
     train_question_list = [x[q_key] for x in train_data]
     test_question_list = [x[q_key] for x in test_data]
     
-    train_path = "/data1/jyliu/in_context/S3ICL/v0/"+dataset+"_train.pt"
-    test_path = "/data1/jyliu/in_context/S3ICL/v0/"+dataset+"_test.pt"
-
-    corpus_embeddings = torch.load(train_path)
-    target_embeddings = torch.load(test_path)
-    # corpus_embeddings = batch_process(train_question_list, batch_size=1)
-    # target_embeddings = batch_process(test_question_list, batch_size=1)
+    corpus_embeddings = batch_process(train_question_list, batch_size=1)
+    target_embeddings = batch_process(test_question_list, batch_size=1)
 
     similarities, dis_similarities = calculate_distance(target_embeddings, corpus_embeddings)
     del corpus_embeddings, target_embeddings
@@ -237,15 +225,12 @@ def mawps_data(train_path, test_path, sim_type, few_shot, l):
 few_shot = 1
 l = 0.01
 few_shot_name = 'one_shot'
-sim_type = 'S3ICL'
-root_path = "/data1/jyliu/in_context"
-if not os.path.exists(root_path+"/"+sim_type):
-    os.mkdir(root_path+"/"+sim_type)
-output_file = root_path+"/"+sim_type+"/final_version/"+sim_type.lower()+"_"+few_shot_name+"_001.json"
+sim_type = 'LMS3'
+output_file = "root_path/outputs.json"
 
-math_crawl_data = get_files_in_folder("/data1/jyliu/in_context/data/MATH/MATH", sim_type.lower(), few_shot, l)
-gsm8k_crawl_data = gsm8k_data("/data1/jyliu/in_context/data/GSM8K/grade-school-math-master/grade_school_math/data", sim_type.lower(), few_shot, l)
-mawps_crawl_data = mawps_data("/data1/jyliu/in_context/data/fold0/train.json", "/data1/jyliu/in_context/data/fold0/dev.json", sim_type.lower(), few_shot, l)
+math_crawl_data = get_files_in_folder("root_path/dataset/MATH/MATH", sim_type.lower(), few_shot, l)
+gsm8k_crawl_data = gsm8k_data("root_path/dataset/GSM8K/grade-school-math-master/grade_school_math/data", sim_type.lower(), few_shot, l)
+mawps_crawl_data = mawps_data("root_path/dataset/MAWPS/train.json", "root_path/dataset/MAWPS/dev.json", sim_type.lower(), few_shot, l)
 
 crawl_data = math_crawl_data+mawps_crawl_data+gsm8k_crawl_data
 write_jsonl(crawl_data, output_file)
