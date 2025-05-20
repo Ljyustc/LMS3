@@ -13,9 +13,10 @@ import torch
 from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM
 import numpy as np
 
+layer_id = -1
 def get_last_layer_attention_weights(model):
     # find W_q, W_k, W_v of last layer
-    last_layer = model.model.layers[-1].self_attn
+    last_layer = model.model.layers[layer_id].self_attn
     # print(last_layer.hidden_size, last_layer.num_heads, last_layer.head_dim, last_layer.num_key_value_heads)
     # 4096 32 128 8
     W_q = last_layer.q_proj.weight
@@ -23,7 +24,7 @@ def get_last_layer_attention_weights(model):
     W_v = last_layer.v_proj.weight
     return W_q, W_k, W_v
 
-ori_model_path  = "root_path/Meta-Llama-3-8B-Instruct"
+ori_model_path  = "model_path"
 config_kwargs = {
     "trust_remote_code": True,
     "cache_dir": None,
@@ -48,7 +49,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 w_q, w_k, w_v = get_last_layer_attention_weights(model)  # W_k: 1024*4096
-w_k1 = w_k.reshape(8, 128, 4096).repeat(1, 4, 1).reshape(4096, 4096).T # num_key_value_heads = 8
+w_k1 = w_k.reshape(8, 128, 4096).repeat(1, 4, 1).reshape(4096, 4096).T # num_key_value_heads = 8 for Llama3
 
 def load_json(file):
     with open(file, 'r', encoding='utf-8') as f:
@@ -78,7 +79,7 @@ def get_representation(text):
     with torch.no_grad():
         outputs = model(**inputs, output_hidden_states=True)
     # get last hidden states
-    representation = outputs.hidden_states[-1][:, -1, :] 
+    representation = outputs.hidden_states[layer_id][:, -1, :] 
     return representation
 
 def calculate_distance(x_A, x_B, batch_size=32):
