@@ -1,6 +1,6 @@
-# What Makes In-context Learning Effective for Mathematical Reasoning: A Theoretical Analysis
+# What Makes In-context Learning Effective for Mathematical Reasoning
 
-This is the repo for paper ["What Makes In-context Learning Effective for Mathematical Reasoning: A Theoretical Analysis"]
+This is the repo for paper ["What Makes In-context Learning Effective for Mathematical Reasoning"]
 
 ## Requirements
 * python==3.10.14
@@ -23,7 +23,7 @@ python LMS3.py
 If you find this repository helpful, please cite our paper.
 ```
 @article{liu2025what,
-  title={What Makes In-context Learning Effective for Mathematical Reasoning: A Theoretical Analysis},
+  title={What Makes In-context Learning Effective for Mathematical Reasoning},
   author={Liu, Jiayu and Huang, Zhenya and Chaokun Wang and Xunpeng Huang and ChengXiang Zhai and Enhong Chen},
   journal={International Conference on Machine Learning},
   year={2025}
