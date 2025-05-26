@@ -25,7 +25,7 @@ If you find this repository helpful, please cite our paper.
 @inproceedings{liu2025what,
   title={What Makes In-context Learning Effective for Mathematical Reasoning},
   author={Liu, Jiayu and Huang, Zhenya and Chaokun Wang and Xunpeng Huang and ChengXiang Zhai and Enhong Chen},
-  booktitle={International Conference on Machine Learning},
+  booktitle={Proceedings of the 42nd International Conference on Machine Learning},
   year={2025}
 }
 ```
