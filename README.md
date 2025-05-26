@@ -22,10 +22,10 @@ python LMS3.py
 ## Reference
 If you find this repository helpful, please cite our paper.
 ```
-@article{liu2025what,
+@inproceedings{liu2025what,
   title={What Makes In-context Learning Effective for Mathematical Reasoning},
   author={Liu, Jiayu and Huang, Zhenya and Chaokun Wang and Xunpeng Huang and ChengXiang Zhai and Enhong Chen},
-  journal={International Conference on Machine Learning},
+  booktitle={International Conference on Machine Learning},
   year={2025}
 }
 ```
